@@ -1,46 +1,31 @@
-# Welcome to your Expo app 👋
+# Bem vindo ao projeto do Forma Palavras 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Esse projeto é a implementação digital do jogo físico Forma Palavras, que tem o intuito de formar palavras dado algumas imagens para a criança.
 
-## Get started
 
-1. Install dependencies
+![image](https://github.com/user-attachments/assets/34e847c3-bb45-4458-9a02-5dd95bb9120b)
+
+A utilização desse jogo será para fins educativos e também médicos. Obtendo dados e informações relevantes para pré diagnósticos de crianças portadoras do TEA, com o auxílio de um especialista acompanhando os comportamentos e também obtendo um relatório pós atividade.
+
+## Para rodar
+
+1. Instale as dependências
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Inicie o projeto
 
    ```bash
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+![image](https://github.com/user-attachments/assets/4fea9623-2c8e-4f20-972f-c5716fabe403)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+![image](https://github.com/user-attachments/assets/627291d6-a77f-4e98-909d-33b435a8f1ff)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
 ## Join the community
 
