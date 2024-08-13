@@ -1,4 +1,4 @@
-# Bem vindo ao projeto do Forma Palavras 👋
+# Bem vindo ao projeto Forma Palavras 👋
 
 Esse projeto é a implementação digital do jogo físico Forma Palavras, que tem o intuito de formar palavras dado algumas imagens para a criança.
 
@@ -25,11 +25,3 @@ A utilização desse jogo será para fins educativos e também médicos. Obtendo
 
 ![image](https://github.com/user-attachments/assets/627291d6-a77f-4e98-909d-33b435a8f1ff)
 
-
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
