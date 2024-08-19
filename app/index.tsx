@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View, Image, ImageBackground, StatusBar, TouchableOpacity, Text } from 'react-native';
-
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -14,8 +13,13 @@ const HomeScreen = () => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    // Navegar para outra tela chamada 'NextScreen'
+    // Navegar para outra tela chamada 'FaseUm'
     navigation.navigate('FaseUm');
+  };
+
+  // Função para lidar com o botão de "Settings"
+  const handleSettingsPress = () => {
+    navigation.navigate('Settings'); // Navega para a tela de Configurações (que ainda será criada)
   };
   
   useFocusEffect(
@@ -41,6 +45,11 @@ const HomeScreen = () => {
           <Text style={styles.textoBotao}>
             JOGAR
           </Text>
+        </TouchableOpacity>
+
+        {/* Botão de Settings */}
+        <TouchableOpacity style={styles.botaoSettings} onPress={handleSettingsPress}>
+          <Text style={styles.textoBotaoSettings}>⚙️</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -79,7 +88,19 @@ const styles = StyleSheet.create({
     fontSize: 33,
     fontFamily: "Fonte",
     justifyContent: "center"
-  }
+  },
+  botaoSettings: {
+    position: 'absolute',
+    top: 50, // Ajuste a posição conforme necessário
+    right: 20, // Ajuste a posição conforme necessário
+    padding: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 50,
+  },
+  textoBotaoSettings: {
+    color: "white",
+    fontSize: 24,
+  },
 });
 
 export default HomeScreen;
