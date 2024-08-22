@@ -1,32 +1,50 @@
-import React, { useState } from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 
 const SettingsScreen = () => {
-  // Estado para controlar se o som está mudo ou não
   const [isMuted, setIsMuted] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
-  // Função para alternar o estado de mudo
-  const toggleSound = () => {
-    setIsMuted(previousState => !previousState);
-    // Aqui você pode adicionar lógica para ativar/desativar o som do jogo
-    // Por exemplo, você pode chamar uma função que controle o áudio
+  useEffect(() => {
+    const loadSound = async () => {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/background.mp3'), // pegar o caminho do som
+        { shouldPlay: true, isLooping: true }       // Configurações do som
+      );
+      setSound(sound);
+    };
+
+    loadSound();
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, []);
+
+  const handleToggleMute = async () => {
+    if (sound) {
+      await sound.setIsMutedAsync(!isMuted);
+      setIsMuted(!isMuted);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Configurações</Text>
-
-      <View style={styles.settingRow}>
-        <Text style={styles.settingText}>Som</Text>
-        <Switch
-          value={!isMuted} // O switch é ativado se o som não estiver mudo
-          onValueChange={toggleSound}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={isMuted ? "#f4f3f4" : "#f5dd4b"}
-        />
+      <View style={styles.settingsContainer}>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="settings-outline" size={32} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={handleToggleMute}>
+          <Ionicons name={isMuted ? "volume-mute-outline" : "volume-high-outline"} size={32} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="information-circle-outline" size={32} color="white" />
+        </TouchableOpacity>
       </View>
-
-      {/* Adicione outras configurações aqui, se necessário */}
     </View>
   );
 };
@@ -36,24 +54,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#282c34', 
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 20,
-  },
-  settingRow: {
-    flexDirection: 'row',
+  settingsContainer: {
+    position: 'absolute',
+    width: 49.09,  // Largura exata conforme especificado
+    height: 219,   // Altura exata conforme especificado
+    left: 1131,    // Posição horizontal exata conforme especificado
+    top: 14,       // Posição vertical exata conforme especificado
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 5,
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
   },
-  settingText: {
-    fontSize: 18,
-    color: 'white',
-    marginRight: 10,
-  },
+  iconButton: {
+    marginVertical: 10,
+  }
 });
 
 export default SettingsScreen;
