@@ -16,9 +16,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onToggleMute, 
         <Ionicons name="close" size={32} color="white" />
       </TouchableOpacity>
       <View style={styles.settingsContainer}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="settings-outline" size={32} color="white" />
-        </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={onToggleMute}>
           <Ionicons name={isMuted ? "volume-mute-outline" : "volume-high-outline"} size={32} color="white" />
         </TouchableOpacity>

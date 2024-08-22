@@ -1,14 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { StyleSheet, View, Image, ImageBackground, StatusBar, TouchableOpacity, Text, Modal } from 'react-native';
 import SettingsScreen from './settings';
 import { Audio } from 'expo-av';
+import { useFonts } from 'expo-font';
+import { Link } from 'expo-router'; // Import Expo Router
 
 const HomeScreen = () => {
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  // Carregar o som apenas uma vez
+  const [fontsLoaded] = useFonts({
+    'Fonte': require('../assets/fonts/Digitalt.ttf'), 
+  });
+
   useEffect(() => {
     const loadSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
@@ -27,7 +32,6 @@ const HomeScreen = () => {
     };
   }, []);
 
-  // Função para alternar o estado de mutar
   const handleToggleMute = async () => {
     if (soundRef.current) {
       const newMutedState = !isMuted;
@@ -36,16 +40,12 @@ const HomeScreen = () => {
     }
   };
 
-  const handlePress = () => {
-    // Navega para a tela fase1
-  };
-
   const handleSettingsPress = () => {
-    setIsSettingsVisible(true); // Exibe o modal de configurações
+    setIsSettingsVisible(true);
   };
 
   const handleCloseSettings = () => {
-    setIsSettingsVisible(false); // Fecha o modal de configurações
+    setIsSettingsVisible(false);
   };
 
   return (
@@ -60,13 +60,19 @@ const HomeScreen = () => {
           style={styles.logo}
           resizeMode="contain"
         />
-        
-        <TouchableOpacity style={styles.botaoJogar} onPress={handlePress}>
+
+        {/* Usando Link para navegar */}
+        <Link href="/fase1" style={styles.botaoJogar}>
           <Text style={styles.textoBotao}>JOGAR</Text>
-        </TouchableOpacity>
+        </Link>
 
         <TouchableOpacity style={styles.botaoSettings} onPress={handleSettingsPress}>
-          <Text style={styles.textoBotaoSettings}>⚙️</Text>
+          <Image
+            source={require('../assets/images/settings_icon.png')}
+            style={styles.botaoSettings}
+            
+            resizeMode="contain"
+          />
         </TouchableOpacity>
         
         <Modal
@@ -105,12 +111,11 @@ const styles = StyleSheet.create({
     marginTop: "6%",
     marginBottom: "5%",
     paddingVertical: "3%",
-    paddingHorizontal: "7%",
+    paddingHorizontal: "6%",
     backgroundColor: "#4EC307",
     borderRadius: 22,
     borderColor: "white",
     justifyContent: "center",
-    alignItems: "center",
     borderWidth: 3,
   },
   textoBotao: {
@@ -121,15 +126,10 @@ const styles = StyleSheet.create({
   },
   botaoSettings: {
     position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 10,
+    top: 10,
+    right: "4%",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 50,
-  },
-  textoBotaoSettings: {
-    color: "white",
-    fontSize: 24,
   },
 });
 
