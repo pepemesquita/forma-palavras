@@ -1,17 +1,19 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Image, ImageBackground, StatusBar, TouchableOpacity, Text, Modal } from 'react-native';
 import SettingsScreen from './settings';
 import { Audio } from 'expo-av';
 import { useFonts } from 'expo-font';
-import { Link } from 'expo-router'; // Import Expo Router
+import { useRouter } from 'expo-router'; // Importar useRouter
 
 const HomeScreen = () => {
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [buttonPressed, setButtonPressed] = useState(false);
   const soundRef = useRef<Audio.Sound | null>(null);
+  const router = useRouter(); // Inicializar o useRouter
 
   const [fontsLoaded] = useFonts({
-    'Fonte': require('../assets/fonts/Digitalt.ttf'), 
+    'Fonte': require('../assets/fonts/Digitalt.ttf'),
   });
 
   useEffect(() => {
@@ -48,6 +50,18 @@ const HomeScreen = () => {
     setIsSettingsVisible(false);
   };
 
+  const handlePressIn = () => {
+    setButtonPressed(true);
+  };
+
+  const handlePressOut = () => {
+    setButtonPressed(false);
+  };
+
+  const handlePress = () => {
+    router.push('/fase1'); // Navegar para a rota /fase1
+  };
+
   return (
     <ImageBackground
       source={require("../assets/images/bg.png")}
@@ -61,16 +75,19 @@ const HomeScreen = () => {
           resizeMode="contain"
         />
 
-        {/* Usando Link para navegar */}
-        <Link href="/fase1" style={styles.botaoJogar}>
+        <TouchableOpacity
+          style={[styles.botaoJogar, buttonPressed && styles.botaoJogarPressed]}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={handlePress}
+        >
           <Text style={styles.textoBotao}>JOGAR</Text>
-        </Link>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.botaoSettings} onPress={handleSettingsPress}>
           <Image
             source={require('../assets/images/settings_icon.png')}
             style={styles.botaoSettings}
-            
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -103,9 +120,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
+    marginLeft: "2%",
     width: "55%",
     height: "50%",
     marginTop: "2%",
+
   },
   botaoJogar: {
     marginTop: "6%",
@@ -117,6 +136,9 @@ const styles = StyleSheet.create({
     borderColor: "white",
     justifyContent: "center",
     borderWidth: 3,
+  },
+  botaoJogarPressed: {
+    backgroundColor: "#3a9c03", // Cor quando pressionado
   },
   textoBotao: {
     color: "white",

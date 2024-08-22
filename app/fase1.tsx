@@ -2,7 +2,12 @@ import React from 'react';
 import { StyleSheet, View, ImageBackground, StatusBar } from 'react-native';
 import { useFonts } from 'expo-font';
 
+export const config = {
+  headerShown: false,
+}
+
 const FaseUm = () => {
+
   const [fontsLoaded] = useFonts({
     'Fonte': require('../assets/fonts/Digitalt.ttf'),
   });
