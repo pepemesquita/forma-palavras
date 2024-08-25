@@ -1,15 +1,15 @@
+// settings.tsx
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SettingsScreenProps {
   onClose: () => void;
-  onToggleMute: () => void;
+  onToggleMute: () => Promise<void>;
   isMuted: boolean;
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onToggleMute, isMuted }) => {
-
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>

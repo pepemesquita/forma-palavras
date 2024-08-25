@@ -18,11 +18,13 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const loadSound = async () => {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/background.mp3'),
-        { shouldPlay: true, isLooping: true }
-      );
-      soundRef.current = sound;
+      if (!soundRef.current) {
+        const { sound } = await Audio.Sound.createAsync(
+          require('../assets/sounds/background.mp3'),
+          { shouldPlay: true, isLooping: true }
+        );
+        soundRef.current = sound;
+      }
     };
 
     loadSound();
@@ -30,6 +32,7 @@ const HomeScreen = () => {
     return () => {
       if (soundRef.current) {
         soundRef.current.unloadAsync();
+        soundRef.current = null; // Limpar referência após descarregar
       }
     };
   }, []);
@@ -84,10 +87,13 @@ const HomeScreen = () => {
           <Text style={styles.textoBotao}>JOGAR</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.botaoSettings} onPress={handleSettingsPress}>
+        <TouchableOpacity 
+          style={styles.botaoSettings} 
+          onPress={handleSettingsPress}
+        >
           <Image
             source={require('../assets/images/settings_icon.png')}
-            style={styles.botaoSettings}
+            style={styles.botaoSettingsIcon}
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -100,7 +106,7 @@ const HomeScreen = () => {
         >
           <SettingsScreen 
             onClose={handleCloseSettings} 
-            onToggleMute={handleToggleMute}
+            onToggleMute={handleToggleMute} // Certifique-se de que isso esteja corretamente definido
             isMuted={isMuted}
           />
         </Modal>
@@ -124,7 +130,6 @@ const styles = StyleSheet.create({
     width: "55%",
     height: "50%",
     marginTop: "2%",
-
   },
   botaoJogar: {
     marginTop: "6%",
@@ -152,6 +157,12 @@ const styles = StyleSheet.create({
     right: "4%",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 50,
+    padding: 10, // Adicionar padding para o ícone
+  },
+  botaoSettingsIcon: {
+    width: 30, // Ajuste do tamanho do ícone do botão de configurações
+    height: 30,
+    resizeMode: 'contain',
   },
 });
 
