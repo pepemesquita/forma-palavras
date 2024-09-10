@@ -13,14 +13,14 @@ const HomeScreen = () => {
   const router = useRouter(); // Inicializar o useRouter
 
   const [fontsLoaded] = useFonts({
-    'Fonte': require('../assets/fonts/Digitalt.ttf'),
+    'Fonte': require('@/src/assets/fonts/Digitalt.ttf'),
   });
 
   useEffect(() => {
     const loadSound = async () => {
       if (!soundRef.current) {
         const { sound } = await Audio.Sound.createAsync(
-          require('../assets/sounds/background.mp3'),
+          require('@/src/assets/sounds/background.mp3'),
           { shouldPlay: true, isLooping: true }
         );
         soundRef.current = sound;
@@ -67,13 +67,13 @@ const HomeScreen = () => {
 
   return (
     <ImageBackground
-      source={require("../assets/images/bg.png")}
+      source={require("@/src/assets/images/bg.png")}
       style={styles.background}
     >
       <StatusBar hidden={true} />
       <View style={styles.container}>
         <Image
-          source={require('../assets/images/logo.png')}
+          source={require('@/src/assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -92,7 +92,7 @@ const HomeScreen = () => {
           onPress={handleSettingsPress}
         >
           <Image
-            source={require('../assets/images/settings_icon.png')}
+            source={require('@/src/assets/images/settings_icon.png')}
             style={styles.botaoSettingsIcon}
             resizeMode="contain"
           />

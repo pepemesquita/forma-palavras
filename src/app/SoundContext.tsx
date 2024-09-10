@@ -16,7 +16,7 @@ export const SoundProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     const loadSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/background.mp3'),
+        require('@/src/assets/sounds/background.mp3'),
         { shouldPlay: true, isLooping: true }
       );
       soundRef.current = sound;
