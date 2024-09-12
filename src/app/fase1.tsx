@@ -15,18 +15,20 @@ const FaseUm = () => {
   });
 
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const { isMuted, toggleMute } = useSound(); // Usa o contexto do som
+  const { isMuted, toggleMute } = useSound();
   const router = useRouter();
-  const soundRef = useRef<Audio.Sound | null>(null); // Define a referência do som
+  const soundRef = useRef<Audio.Sound | null>(null);
 
-  const blankSpaceRefs = useRef<(View | null)[]>([]); // Array de referências para cada blankSpace
-  const [blankSpacePositions, setBlankSpacePositions] = useState<{ fx: number, fy: number, width: number, height: number, x: number, y: number }[]>([]); // Posições dos blankSpaces
+  const blankSpaceRefs = useRef<(View | null)[]>([]); 
+  const [blankSpacePositions, setBlankSpacePositions] = useState<{ fx: number, fy: number, width: number, height: number, x: number, y: number }[]>([]);
+  const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
+  const [highlightedBlankSpaceIndex, setHighlightedBlankSpaceIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
-          require('@/src/assets/sounds/background.mp3'),
-          { shouldPlay: !isMuted, isLooping: true }
+        require('@/src/assets/sounds/background.mp3'),
+        { shouldPlay: !isMuted, isLooping: true }
       );
       soundRef.current = sound;
     };
@@ -38,29 +40,28 @@ const FaseUm = () => {
         soundRef.current.unloadAsync();
       }
     };
-  }, [isMuted]); // Recarrega o som quando isMuted muda
-
-  const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
-
+  }, [isMuted]);
 
   useEffect(() => {
-    // Após a renderização, mede a posição de cada blankSpace
     const positions: { fx: number, fy: number, width: number, height: number, x: number, y: number }[] = [];
 
     blankSpaceRefs.current.forEach((ref, index) => {
       if (ref) {
-        ref.measure((fx, fy, width, height, px, py) => {
-          positions[index] = { fx: fx, fy: fy, width: width, height: height, x: px, y: py };
-          if (positions.length === blankSpaceRefs.current.length) {
-            setBlankSpacePositions(positions); // Atualiza o estado com as posições
-          }
-        });
+        const handle = findNodeHandle(ref); // Usa findNodeHandle para garantir referência correta
+        if (handle) {
+          ref.measure((fx, fy, width, height, px, py) => {
+            positions[index] = { fx, fy, width, height, x: px, y: py };
+            if (positions.length === blankSpaceRefs.current.length) {
+              setBlankSpacePositions(positions);
+            }
+          });
+        }
       }
     });
   }, [blankSpaces]);
 
   const handleHomePress = () => {
-    router.push('/'); // Navegar para a tela inicial
+    router.push('/');
   };
 
   const handleSettingsPress = () => {
@@ -73,36 +74,62 @@ const FaseUm = () => {
 
   const [letters, setLetters] = useState<LetterType[]>(letterArray.map(char => ({ char, position: null })));
   const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
-  const panResponders = letters.map((_, index) =>
-    PanResponder.create({
-      onStartShouldSetPanResponder: (evt, gestureState) => true,
-      onPanResponderMove: Animated.event([null, { dx: pan[index].x, dy: pan[index].y }], { useNativeDriver: false }),
-      onPanResponderRelease: (_, gesture) => {
-        const finalPosition = { x: gesture.moveX, y: gesture.moveY };
-        const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
+  
+ const panResponders = letters.map((_, index) => {
+  return PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (event, gesture) => {
+      // Atualiza a posição da letra enquanto é arrastada
+      pan[index].setValue({ x: gesture.dx, y: gesture.dy });
 
-        if (droppedSpaceIndex !== null) {
-          const updatedBlankSpaces = [...blankSpaces];
-          const updatedLetters = [...letters];
+      // A detecção de realce é movida para os espaços vazios
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const finalPosition = { x: gesture.moveX, y: gesture.moveY };
+      const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
-          updatedBlankSpaces[droppedSpaceIndex] = { char: updatedLetters[index].char, letterIndex: index };
-          updatedLetters[index] = { ...updatedLetters[index], position: droppedSpaceIndex };
+      if (droppedSpaceIndex !== null) {
+        const updatedBlankSpaces = [...blankSpaces];
+        const updatedLetters = [...letters];
 
-          setBlankSpaces(updatedBlankSpaces);
-          setLetters(updatedLetters);
+        updatedBlankSpaces[droppedSpaceIndex] = { char: updatedLetters[index].char, letterIndex: index };
+        updatedLetters[index] = { ...updatedLetters[index], position: droppedSpaceIndex };
 
-          // reseta o valor pan para a letra
-          pan[index].setValue({ x: 0, y: 0 });
-        } else {
-          // retorna pra posicao original se for dropada fora de um lugar valido
-          Animated.spring(pan[index], {
-            toValue: { x: 0, y: 0 },
-            useNativeDriver: false,
-          }).start();
-        }
-      },
-    })
-  );
+        setBlankSpaces(updatedBlankSpaces);
+        setLetters(updatedLetters);
+
+        // Reseta a posição da animação
+        pan[index].setValue({ x: 0, y: 0 });
+      } else {
+        // Anima de volta para a posição original
+        Animated.spring(pan[index], {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+  });
+});
+
+const blankSpaceResponders = blankSpaces.map((space, spaceIndex) =>
+  PanResponder.create({
+    onStartShouldSetPanResponder: () => false, // Não precisa começar o PanResponder
+    onMoveShouldSetPanResponderCapture: (event, gesture) => {
+      // Verifica se a letra está sobre o espaço vazio
+      const currentPosition = { x: gesture.moveX, y: gesture.moveY };
+      const nearestSpaceIndex = findNearestBlankSpace(currentPosition);
+
+      // Se a letra estiver perto o suficiente, realça o espaço
+      if (nearestSpaceIndex === spaceIndex) {
+        setHighlightedBlankSpaceIndex(spaceIndex);
+      }
+      return false;
+    },
+    onPanResponderRelease: () => {
+      setHighlightedBlankSpaceIndex(null); // Remove o realce quando o arrasto termina
+    },
+  })
+);
 
   const findNearestBlankSpace = (letterPosition: { x: number; y: number }): number | null => {
     const blankSpacesIndexes = blankSpaces.map((space, index) => space === null ? index : null).filter(index => index !== null);
@@ -113,7 +140,8 @@ const FaseUm = () => {
     blankSpacesIndexes.forEach(spaceIndex => {
       const spacePosition = blankSpacePositions[spaceIndex];
       const distance = Math.sqrt(
-        Math.pow(letterPosition.x - (spacePosition.x + spacePosition.width/2), 2) + Math.pow(letterPosition.y - (spacePosition.y + spacePosition.height/2), 2)
+        Math.pow(letterPosition.x - (spacePosition.x + spacePosition.width / 2), 2) +
+        Math.pow(letterPosition.y - (spacePosition.y + spacePosition.height / 2), 2)
       );
 
       if (distance < shortestDistance) {
@@ -133,18 +161,23 @@ const FaseUm = () => {
           {[...Array(4)].map((_, spaceIdx) => {
             const spaceIndex = figureIndex * 4 + spaceIdx;
             const letterInSpace = blankSpaces[spaceIndex];
+            const isHighlighted = spaceIndex === highlightedBlankSpaceIndex;
             return (
-              <View
+              <Animated.View
                 key={spaceIdx}
-                style={styles.blankSpace}
-                ref={el => (blankSpaceRefs.current[spaceIndex] = el)} // Associa a referência ao blankSpace
+                style={[
+                  styles.blankSpace,
+                  isHighlighted ? styles.highlightedBlankSpace : null
+                ]}
+                ref={el => (blankSpaceRefs.current[spaceIndex] = el)}
+                {...blankSpaceResponders[spaceIndex].panHandlers}
               >
                 {letterInSpace ? (
                   <Image source={letterImages[letterInSpace.char]} style={styles.letterImage} />
                 ) : (
                   <Image source={require('@/src/assets/images/blank_rectangle.png')} style={styles.blankSpaceImage} />
                 )}
-              </View>
+              </Animated.View>
             );
           })}
         </View>
@@ -202,7 +235,7 @@ const FaseUm = () => {
         <SettingsScreen
           onClose={handleCloseSettings}
           onToggleMute={async () => {
-            await toggleMute(); // Garante que a função retorna uma Promise
+            await toggleMute();
           }}
           isMuted={isMuted}
         />
@@ -210,6 +243,7 @@ const FaseUm = () => {
     </ImageBackground>
   );
 };
+
 
 const styles = StyleSheet.create({
   background: {
@@ -293,6 +327,15 @@ const styles = StyleSheet.create({
     marginRight: 5,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  highlightedBlankSpace: {
+    width: 40,
+    height: 40,
+    marginRight: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'yellow',
+    borderWidth: 2,
   },
   lettersContainer: {
     flexDirection: 'row',
