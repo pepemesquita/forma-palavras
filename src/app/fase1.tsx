@@ -20,7 +20,7 @@ const FaseUm = () => {
   const soundRef = useRef<Audio.Sound | null>(null); // Define a referência do som
 
   const blankSpaceRefs = useRef<(View | null)[]>([]); // Array de referências para cada blankSpace
-  const [blankSpacePositions, setBlankSpacePositions] = useState<{ x: number, y: number }[]>([]); // Posições dos blankSpaces
+  const [blankSpacePositions, setBlankSpacePositions] = useState<{ fx: number, fy: number, width: number, height: number, x: number, y: number }[]>([]); // Posições dos blankSpaces
 
   useEffect(() => {
     const loadSound = async () => {
@@ -45,12 +45,12 @@ const FaseUm = () => {
 
   useEffect(() => {
     // Após a renderização, mede a posição de cada blankSpace
-    const positions: { x: number, y: number }[] = [];
+    const positions: { fx: number, fy: number, width: number, height: number, x: number, y: number }[] = [];
 
     blankSpaceRefs.current.forEach((ref, index) => {
       if (ref) {
         ref.measure((fx, fy, width, height, px, py) => {
-          positions[index] = { x: px, y: py };
+          positions[index] = { fx: fx, fy: fy, width: width, height: height, x: px, y: py };
           if (positions.length === blankSpaceRefs.current.length) {
             setBlankSpacePositions(positions); // Atualiza o estado com as posições
           }
@@ -75,7 +75,7 @@ const FaseUm = () => {
   const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
   const panResponders = letters.map((_, index) =>
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
       onPanResponderMove: Animated.event([null, { dx: pan[index].x, dy: pan[index].y }], { useNativeDriver: false }),
       onPanResponderRelease: (_, gesture) => {
         const finalPosition = { x: gesture.moveX, y: gesture.moveY };
@@ -105,7 +105,6 @@ const FaseUm = () => {
   );
 
   const findNearestBlankSpace = (letterPosition: { x: number; y: number }): number | null => {
-    const emptySpaceIndex = blankSpaces.findIndex(space => space === null);
     const blankSpacesIndexes = blankSpaces.map((space, index) => space === null ? index : null).filter(index => index !== null);
 
     let shortestDistance = Infinity;
@@ -114,7 +113,7 @@ const FaseUm = () => {
     blankSpacesIndexes.forEach(spaceIndex => {
       const spacePosition = blankSpacePositions[spaceIndex];
       const distance = Math.sqrt(
-        Math.pow(letterPosition.x - spacePosition.x, 2) + Math.pow(letterPosition.y - spacePosition.y, 2)
+        Math.pow(letterPosition.x - (spacePosition.x + spacePosition.width/2), 2) + Math.pow(letterPosition.y - (spacePosition.y + spacePosition.height/2), 2)
       );
 
       if (distance < shortestDistance) {
