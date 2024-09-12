@@ -78,12 +78,7 @@ const FaseUm = () => {
  const panResponders = letters.map((_, index) => {
   return PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (event, gesture) => {
-      // Atualiza a posição da letra enquanto é arrastada
-      pan[index].setValue({ x: gesture.dx, y: gesture.dy });
-
-      // A detecção de realce é movida para os espaços vazios
-    },
+    onPanResponderMove: (event, gesture) => {pan[index].setValue({ x: gesture.dx, y: gesture.dy });},
     onPanResponderRelease: (_, gesture) => {
       const finalPosition = { x: gesture.moveX, y: gesture.moveY };
       const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
@@ -111,26 +106,6 @@ const FaseUm = () => {
   });
 });
 
-const blankSpaceResponders = blankSpaces.map((space, spaceIndex) =>
-  PanResponder.create({
-    onStartShouldSetPanResponder: () => false, // Não precisa começar o PanResponder
-    onMoveShouldSetPanResponderCapture: (event, gesture) => {
-      // Verifica se a letra está sobre o espaço vazio
-      const currentPosition = { x: gesture.moveX, y: gesture.moveY };
-      const nearestSpaceIndex = findNearestBlankSpace(currentPosition);
-
-      // Se a letra estiver perto o suficiente, realça o espaço
-      if (nearestSpaceIndex === spaceIndex) {
-        setHighlightedBlankSpaceIndex(spaceIndex);
-      }
-      return false;
-    },
-    onPanResponderRelease: () => {
-      setHighlightedBlankSpaceIndex(null); // Remove o realce quando o arrasto termina
-    },
-  })
-);
-
   const findNearestBlankSpace = (letterPosition: { x: number; y: number }): number | null => {
     const blankSpacesIndexes = blankSpaces.map((space, index) => space === null ? index : null).filter(index => index !== null);
 
@@ -154,23 +129,21 @@ const blankSpaceResponders = blankSpaces.map((space, spaceIndex) =>
   };
 
   const renderFigures = () => {
-    return figures.map((figure, figureIndex) => (
+    const render_figures = Object.values(figures);
+    return render_figures.map((figure, figureIndex) => (
       <View key={figureIndex} style={styles.figureContainer}>
         <Image source={figure} style={styles.figureImage} />
         <View style={styles.spacesContainer}>
           {[...Array(4)].map((_, spaceIdx) => {
             const spaceIndex = figureIndex * 4 + spaceIdx;
             const letterInSpace = blankSpaces[spaceIndex];
-            const isHighlighted = spaceIndex === highlightedBlankSpaceIndex;
             return (
               <Animated.View
                 key={spaceIdx}
                 style={[
                   styles.blankSpace,
-                  isHighlighted ? styles.highlightedBlankSpace : null
                 ]}
                 ref={el => (blankSpaceRefs.current[spaceIndex] = el)}
-                {...blankSpaceResponders[spaceIndex].panHandlers}
               >
                 {letterInSpace ? (
                   <Image source={letterImages[letterInSpace.char]} style={styles.letterImage} />
