@@ -143,10 +143,10 @@ const FaseUm = () => {
                 style={[
                   styles.blankSpace,
                 ]}
-                ref={el => (blankSpaceRefs.current[spaceIndex] = el)}
+                ref={el => (blankSpaceRefs.current[spaceIndex] = el as View)}
               >
                 {letterInSpace ? (
-                  <Image source={letterImages[letterInSpace.char]} style={styles.letterImage} />
+                  <Image source={letterImages[letterInSpace.char as keyof typeof letterImages]} style={styles.letterImage} />
                 ) : (
                   <Image source={require('@/src/assets/images/blank_rectangle.png')} style={styles.blankSpaceImage} />
                 )}
@@ -177,7 +177,7 @@ const FaseUm = () => {
             style={[styles.letterTile, panStyle]}
             {...panResponders[index].panHandlers}
           >
-            <Image source={letterImages[char]} style={styles.letterImage} />
+            <Image source={letterImages[char as keyof typeof letterImages]} style={styles.letterImage} />
           </Animated.View>
         );
       })}

@@ -1,4 +1,4 @@
-const init_figures = {
+const init_figures: { [key: string]: any } = {
     "bolo": require('@/src/assets/images/figures/bolo.png'),
     "gato": require('@/src/assets/images/figures/gato.png'),
     "flor": require('@/src/assets/images/figures/flor.png'),
@@ -26,7 +26,7 @@ function shuffle(array: Array<any>) {
 
 let selected_images = getRandomElements(Object.keys(init_figures), 4);
 
-let figures: { [key: string]: any } = {};
+let figures: { [key in keyof typeof init_figures]?: any } = {};
 
 selected_images.map((image: string) => {
     figures[image] = init_figures[image];
