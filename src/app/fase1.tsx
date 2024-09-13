@@ -125,7 +125,9 @@ const FaseUm = () => {
       }
     });
 
-    return nearestSpaceIndex;
+    // Evita que a letra seja solta em um espaço muito distante
+    // (ajuda a evitar missclicks)
+    return shortestDistance < 50 ? nearestSpaceIndex : null;
   };
 
   const renderFigures = () => {
