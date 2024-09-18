@@ -10,6 +10,7 @@ import {
   PanResponder,
   Animated,
   findNodeHandle,
+  Text,
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
@@ -26,6 +27,8 @@ import {
 } from "../utils/mockData";
 import ButtonContainer from "../components/ButtonContainer";
 import SettingsButton from "../components/SettingsButton";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons } from "@expo/vector-icons"; // Importando os ícones
 
 const FaseUm = () => {
   const [fontsLoaded] = useFonts({
@@ -43,6 +46,11 @@ const FaseUm = () => {
   >([]);
   const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
   const [highlightedBlankSpaceIndex, setHighlightedBlankSpaceIndex] = useState<number | null>(null);
+  const [isWordComplete, setIsWordComplete] = useState<boolean>(false);
+  const [isWordCorrect, setIsWordCorrect] = useState<boolean>(false);
+  const [verificationMarks, setVerificationMarks] = useState<(string | null)[]>(
+    Array(4).fill(null)
+  );
 
   useEffect(() => {
     const loadSound = async () => {
@@ -74,7 +82,7 @@ const FaseUm = () => {
 
     blankSpaceRefs.current.forEach((ref, index) => {
       if (ref) {
-        const handle = findNodeHandle(ref); // Usa findNodeHandle para garantir referência correta
+        const handle = findNodeHandle(ref);
         if (handle) {
           ref.measure((fx, fy, width, height, px, py) => {
             positions[index] = { fx, fy, width, height, x: px, y: py };
@@ -88,19 +96,30 @@ const FaseUm = () => {
   }, [blankSpaces]);
 
   useEffect(() => {
-    // Se figures é um objeto, converta-o para um array
     const figuresArray = Object.values(figures);
 
     figuresArray.forEach((_, figureIndex) => {
       const lineBlankSpaces = blankSpaces.slice(figureIndex * 4, figureIndex * 4 + 4);
       const allFilled = lineBlankSpaces.every((space) => space !== null);
+
       if (allFilled) {
         const isCorrect = verifyWord(lineBlankSpaces, figureIndex);
-        if (isCorrect) {
-          alert(`Linha ${figureIndex + 1}: Palavra correta!`);
-        } else {
-          alert(`Linha ${figureIndex + 1}: Palavra incorreta. Tente novamente.`);
-        }
+
+        setVerificationMarks((prevMarks) => {
+          const updatedMarks = [...prevMarks];
+          updatedMarks[figureIndex] = isCorrect ? "check-circle" : "cancel";
+          return updatedMarks;
+        });
+
+        setIsWordComplete(true);
+        setIsWordCorrect(isCorrect);
+      } else {
+        setVerificationMarks((prevMarks) => {
+          const updatedMarks = [...prevMarks];
+          updatedMarks[figureIndex] = "invisible";
+          return updatedMarks;
+        });
+        setIsWordComplete(false);
       }
     });
   }, [blankSpaces]);
@@ -145,10 +164,8 @@ const FaseUm = () => {
           setBlankSpaces(updatedBlankSpaces);
           setLetters(updatedLetters);
 
-          // Reseta a posição da animação
           pan[index].setValue({ x: 0, y: 0 });
         } else {
-          // Anima de volta para a posição original
           Animated.spring(pan[index], {
             toValue: { x: 0, y: 0 },
             useNativeDriver: false,
@@ -208,6 +225,16 @@ const FaseUm = () => {
               </Animated.View>
             );
           })}
+          {/* Renderiza o ícone de verificação ou um espaço invisível */}
+          {verificationMarks[figureIndex] === "invisible" ? (
+            <View style={styles.invisibleIcon} /> // Espaço invisível
+          ) : (
+            <MaterialIcons
+              name={verificationMarks[figureIndex] || "help-outline"}
+              size={24}
+              color={verificationMarks[figureIndex] === "check-circle" ? "green" : "red"}
+            />
+          )}
         </View>
       </View>
     ));
@@ -233,6 +260,15 @@ const FaseUm = () => {
           </Animated.View>
         );
       })}
+      {/* Adicionando ícones para indicar se a palavra está correta */}
+      {isWordComplete && (
+        <Icon
+          name={isWordCorrect ? "check-circle" : "cancel"}
+          size={30}
+          color={isWordCorrect ? "green" : "red"}
+          style={styles.verificationIcon}
+        />
+      )}
     </View>
   );
 
@@ -375,6 +411,23 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "contain",
+  },
+  verificationMark: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
+  },
+  verificationIcon: {
+    marginLeft: 10,
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  invisibleIcon: {
+    width: 20,
+    height: 24,
+    marginLeft: 4, //AJUSTAR AQUI O ELEMENTO INVISÍVEL QUE ALINHA QUANDO A PALAVRA NÃO ESTÁ COMPLETA
+    backgroundColor: "transparent",
   },
 });
 
