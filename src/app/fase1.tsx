@@ -1,17 +1,35 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, ImageBackground, StatusBar, TouchableOpacity, Image, Modal, PanResponder, Animated, findNodeHandle } from 'react-native';
-import { useFonts } from 'expo-font';
-import { useRouter } from 'expo-router';
-import { Audio } from 'expo-av';
-import SettingsScreen from './settings';
-import { useSound } from './SoundContext';
-import { figures, letterImages, letterArray, LetterType, BlankSpaceType } from '../utils/mockData';
-import ButtonContainer from '../components/ButtonContainer';
-import SettingsButton from '../components/SettingsButton';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  ImageBackground,
+  StatusBar,
+  TouchableOpacity,
+  Image,
+  Modal,
+  PanResponder,
+  Animated,
+  findNodeHandle,
+} from "react-native";
+import { useFonts } from "expo-font";
+import { useRouter } from "expo-router";
+import { Audio } from "expo-av";
+import SettingsScreen from "./settings";
+import { useSound } from "./SoundContext";
+import {
+  figures,
+  letterImages,
+  letterArray,
+  LetterType,
+  BlankSpaceType,
+  verifyWord,
+} from "../utils/mockData";
+import ButtonContainer from "../components/ButtonContainer";
+import SettingsButton from "../components/SettingsButton";
 
 const FaseUm = () => {
   const [fontsLoaded] = useFonts({
-    'Fonte': require('@/src/assets/fonts/Digitalt.ttf'),
+    Fonte: require("@/src/assets/fonts/Digitalt.ttf"),
   });
 
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
@@ -19,15 +37,17 @@ const FaseUm = () => {
   const router = useRouter();
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  const blankSpaceRefs = useRef<(View | null)[]>([]); 
-  const [blankSpacePositions, setBlankSpacePositions] = useState<{ fx: number, fy: number, width: number, height: number, x: number, y: number }[]>([]);
+  const blankSpaceRefs = useRef<(View | null)[]>([]);
+  const [blankSpacePositions, setBlankSpacePositions] = useState<
+    { fx: number; fy: number; width: number; height: number; x: number; y: number }[]
+  >([]);
   const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
   const [highlightedBlankSpaceIndex, setHighlightedBlankSpaceIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
-        require('@/src/assets/sounds/background.mp3'),
+        require("@/src/assets/sounds/background.mp3"),
         { shouldPlay: !isMuted, isLooping: true }
       );
       soundRef.current = sound;
@@ -43,7 +63,14 @@ const FaseUm = () => {
   }, [isMuted]);
 
   useEffect(() => {
-    const positions: { fx: number, fy: number, width: number, height: number, x: number, y: number }[] = [];
+    const positions: {
+      fx: number;
+      fy: number;
+      width: number;
+      height: number;
+      x: number;
+      y: number;
+    }[] = [];
 
     blankSpaceRefs.current.forEach((ref, index) => {
       if (ref) {
@@ -60,8 +87,26 @@ const FaseUm = () => {
     });
   }, [blankSpaces]);
 
+  useEffect(() => {
+    // Se figures é um objeto, converta-o para um array
+    const figuresArray = Object.values(figures);
+
+    figuresArray.forEach((_, figureIndex) => {
+      const lineBlankSpaces = blankSpaces.slice(figureIndex * 4, figureIndex * 4 + 4);
+      const allFilled = lineBlankSpaces.every((space) => space !== null);
+      if (allFilled) {
+        const isCorrect = verifyWord(lineBlankSpaces, figureIndex);
+        if (isCorrect) {
+          alert(`Linha ${figureIndex + 1}: Palavra correta!`);
+        } else {
+          alert(`Linha ${figureIndex + 1}: Palavra incorreta. Tente novamente.`);
+        }
+      }
+    });
+  }, [blankSpaces]);
+
   const handleHomePress = () => {
-    router.push('/');
+    router.push("/");
   };
 
   const handleSettingsPress = () => {
@@ -72,51 +117,60 @@ const FaseUm = () => {
     setIsSettingsVisible(false);
   };
 
-  const [letters, setLetters] = useState<LetterType[]>(letterArray.map(char => ({ char, position: null })));
+  const [letters, setLetters] = useState<LetterType[]>(
+    letterArray.map((char) => ({ char, position: null }))
+  );
   const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
-  
- const panResponders = letters.map((_, index) => {
-  return PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (event, gesture) => {pan[index].setValue({ x: gesture.dx, y: gesture.dy });},
-    onPanResponderRelease: (_, gesture) => {
-      const finalPosition = { x: gesture.moveX, y: gesture.moveY };
-      const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
-      if (droppedSpaceIndex !== null) {
-        const updatedBlankSpaces = [...blankSpaces];
-        const updatedLetters = [...letters];
+  const panResponders = letters.map((_, index) => {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gesture) => {
+        pan[index].setValue({ x: gesture.dx, y: gesture.dy });
+      },
+      onPanResponderRelease: (_, gesture) => {
+        const finalPosition = { x: gesture.moveX, y: gesture.moveY };
+        const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
-        updatedBlankSpaces[droppedSpaceIndex] = { char: updatedLetters[index].char, letterIndex: index };
-        updatedLetters[index] = { ...updatedLetters[index], position: droppedSpaceIndex };
+        if (droppedSpaceIndex !== null) {
+          const updatedBlankSpaces = [...blankSpaces];
+          const updatedLetters = [...letters];
 
-        setBlankSpaces(updatedBlankSpaces);
-        setLetters(updatedLetters);
+          updatedBlankSpaces[droppedSpaceIndex] = {
+            char: updatedLetters[index].char,
+            letterIndex: index,
+          };
+          updatedLetters[index] = { ...updatedLetters[index], position: droppedSpaceIndex };
 
-        // Reseta a posição da animação
-        pan[index].setValue({ x: 0, y: 0 });
-      } else {
-        // Anima de volta para a posição original
-        Animated.spring(pan[index], {
-          toValue: { x: 0, y: 0 },
-          useNativeDriver: false,
-        }).start();
-      }
-    },
+          setBlankSpaces(updatedBlankSpaces);
+          setLetters(updatedLetters);
+
+          // Reseta a posição da animação
+          pan[index].setValue({ x: 0, y: 0 });
+        } else {
+          // Anima de volta para a posição original
+          Animated.spring(pan[index], {
+            toValue: { x: 0, y: 0 },
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    });
   });
-});
 
   const findNearestBlankSpace = (letterPosition: { x: number; y: number }): number | null => {
-    const blankSpacesIndexes = blankSpaces.map((space, index) => space === null ? index : null).filter(index => index !== null);
+    const blankSpacesIndexes = blankSpaces
+      .map((space, index) => (space === null ? index : null))
+      .filter((index) => index !== null);
 
     let shortestDistance = Infinity;
     let nearestSpaceIndex = null;
 
-    blankSpacesIndexes.forEach(spaceIndex => {
+    blankSpacesIndexes.forEach((spaceIndex) => {
       const spacePosition = blankSpacePositions[spaceIndex];
       const distance = Math.sqrt(
         Math.pow(letterPosition.x - (spacePosition.x + spacePosition.width / 2), 2) +
-        Math.pow(letterPosition.y - (spacePosition.y + spacePosition.height / 2), 2)
+          Math.pow(letterPosition.y - (spacePosition.y + spacePosition.height / 2), 2)
       );
 
       if (distance < shortestDistance) {
@@ -125,9 +179,7 @@ const FaseUm = () => {
       }
     });
 
-    // Evita que a letra seja solta em um espaço muito distante
-    // (ajuda a evitar missclicks)
-    return shortestDistance < 50 ? nearestSpaceIndex : null;
+    return nearestSpaceIndex;
   };
 
   const renderFigures = () => {
@@ -142,15 +194,16 @@ const FaseUm = () => {
             return (
               <Animated.View
                 key={spaceIdx}
-                style={[
-                  styles.blankSpace,
-                ]}
-                ref={el => (blankSpaceRefs.current[spaceIndex] = el as View)}
+                style={[styles.blankSpace]}
+                ref={(el) => (blankSpaceRefs.current[spaceIndex] = el)}
               >
                 {letterInSpace ? (
-                  <Image source={letterImages[letterInSpace.char as keyof typeof letterImages]} style={styles.letterImage} />
+                  <Image source={letterImages[letterInSpace.char]} style={styles.letterImage} />
                 ) : (
-                  <Image source={require('@/src/assets/images/blank_rectangle.png')} style={styles.blankSpaceImage} />
+                  <Image
+                    source={require("@/src/assets/images/blank_rectangle.png")}
+                    style={styles.blankSpaceImage}
+                  />
                 )}
               </Animated.View>
             );
@@ -167,10 +220,7 @@ const FaseUm = () => {
 
         const { char } = letter;
         const panStyle = {
-          transform: [
-            { translateX: pan[index].x },
-            { translateY: pan[index].y },
-          ],
+          transform: [{ translateX: pan[index].x }, { translateY: pan[index].y }],
         };
 
         return (
@@ -179,7 +229,7 @@ const FaseUm = () => {
             style={[styles.letterTile, panStyle]}
             {...panResponders[index].panHandlers}
           >
-            <Image source={letterImages[char as keyof typeof letterImages]} style={styles.letterImage} />
+            <Image source={letterImages[char]} style={styles.letterImage} />
           </Animated.View>
         );
       })}
@@ -193,12 +243,8 @@ const FaseUm = () => {
       <SettingsButton onPress={handleSettingsPress} />
 
       <View style={styles.gameContainer}>
-        <View style={styles.figuresSection}>
-          {renderFigures()}
-        </View>
-        <View style={styles.lettersSection}>
-          {renderLetters()}
-        </View>
+        <View style={styles.figuresSection}>{renderFigures()}</View>
+        <View style={styles.lettersSection}>{renderLetters()}</View>
       </View>
 
       <Modal
@@ -219,69 +265,71 @@ const FaseUm = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: "cover",
+    width: "100%", // Ensure the background covers the full width
+    height: "100%", // Ensure the background covers the full height
+    resizeMode: "cover", // Ensure the image covers the whole background
   },
   buttonContainer: {
-    position: 'absolute',
+    position: "absolute",
     width: 120,
     height: 50,
     left: 26,
     top: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   iconButton: {
     width: 50,
     height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   iconImage: {
     width: 40, // Ajustado para garantir tamanho uniforme
     height: 40, // Ajustado para garantir tamanho uniforme
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   botaoSettings: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: "4%",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 50,
     padding: 10, // Adicionando padding para garantir que o ícone tenha espaço suficiente
   },
-  botaoSettingsImage: { // Verifique se esta propriedade está presente e corretamente definida
+  botaoSettingsImage: {
+    // Verifique se esta propriedade está presente e corretamente definida
     width: 30, // Ajuste do tamanho do ícone do botão de configurações
     height: 30,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   gameContainer: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: '5%',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: "5%",
   },
   figuresSection: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginRight: '5%',
+    justifyContent: "center",
+    alignItems: "flex-end",
+    marginRight: "5%",
   },
   lettersSection: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    marginLeft: '5%',
+    justifyContent: "center",
+    alignItems: "flex-start",
+    marginLeft: "5%",
   },
   figureContainer: {
     marginBottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   figureImage: {
     width: 60,
@@ -289,33 +337,33 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   spacesContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   blankSpaceImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
   },
   blankSpace: {
     width: 40,
     height: 40,
     marginRight: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   highlightedBlankSpace: {
     width: 40,
     height: 40,
     marginRight: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'yellow',
+    justifyContent: "center",
+    alignItems: "center",
+    borderColor: "yellow",
     borderWidth: 2,
   },
   lettersContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   letterTile: {
     width: 40,
@@ -324,9 +372,9 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   letterImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
   },
 });
 
