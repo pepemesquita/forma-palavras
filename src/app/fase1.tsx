@@ -98,6 +98,8 @@ const FaseUm = () => {
   useEffect(() => {
     const figuresArray = Object.values(figures);
 
+    let allWordsCorrect = true;
+
     figuresArray.forEach((_, figureIndex) => {
       const lineBlankSpaces = blankSpaces.slice(figureIndex * 4, figureIndex * 4 + 4);
       const allFilled = lineBlankSpaces.every((space) => space !== null);
@@ -111,17 +113,25 @@ const FaseUm = () => {
           return updatedMarks;
         });
 
-        setIsWordComplete(true);
-        setIsWordCorrect(isCorrect);
+        if (!isCorrect) {
+          allWordsCorrect = false;
+        }
       } else {
         setVerificationMarks((prevMarks) => {
           const updatedMarks = [...prevMarks];
           updatedMarks[figureIndex] = "invisible";
           return updatedMarks;
         });
-        setIsWordComplete(false);
+        allWordsCorrect = false;
       }
     });
+
+    //navega para a próxima fase apenas se todas as palavras estiverem corretas
+    /*if (allWordsCorrect) {
+      setTimeout(() => {
+        router.push("/final");
+      }, 2000);
+    }*/
   }, [blankSpaces]);
 
   const handleHomePress = () => {
@@ -227,13 +237,13 @@ const FaseUm = () => {
           })}
           {/* Renderiza o ícone de verificação ou um espaço invisível */}
           {verificationMarks[figureIndex] === "invisible" ? (
-            <View style={styles.invisibleIcon} /> // Espaço invisível
+              <View style={styles.invisibleIcon} />
           ) : (
-            <MaterialIcons
-              name={verificationMarks[figureIndex] || "help-outline"}
-              size={24}
-              color={verificationMarks[figureIndex] === "check-circle" ? "green" : "red"}
-            />
+              <MaterialIcons
+                  name={verificationMarks[figureIndex] || "help-outline"}
+                  size={24}
+                  color={verificationMarks[figureIndex] === "check-circle" ? "green" : "red"}
+              />
           )}
         </View>
       </View>
@@ -261,14 +271,6 @@ const FaseUm = () => {
         );
       })}
       {/* Adicionando ícones para indicar se a palavra está correta */}
-      {isWordComplete && (
-        <Icon
-          name={isWordCorrect ? "check-circle" : "cancel"}
-          size={30}
-          color={isWordCorrect ? "green" : "red"}
-          style={styles.verificationIcon}
-        />
-      )}
     </View>
   );
 
