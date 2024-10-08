@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Image, StyleSheet } from 'react-native';
+import {TouchableOpacity, Image, StyleSheet} from 'react-native';
 
-const SettingsButton = ({ onPress }: { onPress: () => void }) => (
+const SettingsButton = ({onPress}: { onPress: () => void }) => (
     <TouchableOpacity style={styles.botaoSettings} onPress={onPress}>
         <Image
             source={require('@/src/assets/images/settings_icon.png')}

@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import {View, TouchableOpacity, Image, StyleSheet} from 'react-native';
 
-const ButtonContainer = ({ onHomePress }: { onHomePress: () => void }) => {
+const ButtonContainer = ({onHomePress}: { onHomePress: () => void }) => {
     return (
         <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.iconButton} onPress={onHomePress}>
-                <Image source={require('@/src/assets/images/iconex.png')} style={styles.iconImage} />
+                <Image source={require('@/src/assets/images/iconex.png')} style={styles.iconImage}/>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={onHomePress}>
-                <Image source={require('@/src/assets/images/home.png')} style={styles.iconImage} />
+                <Image source={require('@/src/assets/images/home.png')} style={styles.iconImage}/>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => {}}>
-                <Image source={require('@/src/assets/images/restart.png')} style={styles.iconImage} />
+            <TouchableOpacity style={styles.iconButton} onPress={() => {
+            }}>
+                <Image source={require('@/src/assets/images/restart.png')} style={styles.iconImage}/>
             </TouchableOpacity>
         </View>
     );

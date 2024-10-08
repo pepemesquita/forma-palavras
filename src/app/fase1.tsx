@@ -27,8 +27,7 @@ import {
 } from "../utils/mockData";
 import ButtonContainer from "../components/ButtonContainer";
 import SettingsButton from "../components/SettingsButton";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import { MaterialIcons } from "@expo/vector-icons"; // Importando os ícones
+import { MaterialIcons } from "@expo/vector-icons";
 
 const FaseUm = () => {
   const [fontsLoaded] = useFonts({
@@ -127,11 +126,11 @@ const FaseUm = () => {
     });
 
     //navega para a próxima fase apenas se todas as palavras estiverem corretas
-    /*if (allWordsCorrect) {
+    if (allWordsCorrect) {
       setTimeout(() => {
         router.push("/final");
       }, 2000);
-    }*/
+    }
   }, [blankSpaces]);
 
   const handleHomePress = () => {
@@ -165,23 +164,33 @@ const FaseUm = () => {
           const updatedBlankSpaces = [...blankSpaces];
           const updatedLetters = [...letters];
 
+          // Se o espaço já está ocupado, a letra anterior retorna ao conjunto de letras
+          const currentLetterInSpace = updatedBlankSpaces[droppedSpaceIndex];
+          if (currentLetterInSpace) {
+            updatedLetters[currentLetterInSpace.letterIndex].position = null;
+          }
+
+          // Atualiza a posição da letra solta
           updatedBlankSpaces[droppedSpaceIndex] = {
             char: updatedLetters[index].char,
             letterIndex: index,
           };
-          updatedLetters[index] = { ...updatedLetters[index], position: droppedSpaceIndex };
+          updatedLetters[index].position = droppedSpaceIndex;
 
           setBlankSpaces(updatedBlankSpaces);
           setLetters(updatedLetters);
 
+          // Reseta a posição visual da letra
           pan[index].setValue({ x: 0, y: 0 });
         } else {
+          // Volta a letra para sua posição inicial se não for colocada em nenhum espaço
           Animated.spring(pan[index], {
             toValue: { x: 0, y: 0 },
             useNativeDriver: false,
           }).start();
         }
-      },
+      }
+
     });
   });
 
@@ -206,7 +215,7 @@ const FaseUm = () => {
       }
     });
 
-    return nearestSpaceIndex;
+    return shortestDistance < 50 ? nearestSpaceIndex : null;
   };
 
   const renderFigures = () => {
@@ -270,7 +279,6 @@ const FaseUm = () => {
           </Animated.View>
         );
       })}
-      {/* Adicionando ícones para indicar se a palavra está correta */}
     </View>
   );
 
