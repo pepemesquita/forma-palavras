@@ -77,6 +77,16 @@ interface BlankSpaceType {
   letterIndex: number;
 }
 
+const getTargetLetter = (char: Letter, index: number): Letter => {
+  const figureIndex = Math.floor(index / 4);
+  const correctWord = Object.keys(figures)[figureIndex];
+
+  const targetSpaceIndex = index % 4;
+  const targetChar = correctWord.charAt(targetSpaceIndex);
+
+  return targetChar;
+};
+
 const verifyWord = (blankSpaces: (BlankSpaceType | null)[], figureIndex: number): boolean => {
   // Obtém a palavra correta para a figura
   const correctWord = Object.keys(figures)[figureIndex];
@@ -88,4 +98,4 @@ const verifyWord = (blankSpaces: (BlankSpaceType | null)[], figureIndex: number)
   return formedWord === correctWord;
 };
 
-export { figures, letterImages, letterArray, LetterType, BlankSpaceType, verifyWord };
+export { figures, letterImages, letterArray, LetterType, BlankSpaceType, getTargetLetter, verifyWord };
