@@ -4,19 +4,17 @@ import {
   View,
   ImageBackground,
   StatusBar,
-  TouchableOpacity,
   Image,
   Modal,
   PanResponder,
   Animated,
   findNodeHandle,
-  Text,
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import { Audio } from "expo-av";
-import SettingsScreen from "./settings";
-import { useSound } from "./SoundContext";
+import SettingsScreen from "./SettingsScreen";
+import { useSound } from "../contexts/SoundContext";
 import {
   figures,
   letterImages,
@@ -29,9 +27,8 @@ import {
 import ButtonContainer from "../components/ButtonContainer";
 import SettingsButton from "../components/SettingsButton";
 import { MaterialIcons } from "@expo/vector-icons";
-import {valid} from "@react-native-community/cli-platform-android/build/config/__fixtures__/android";
 
-const FaseUm = () => {
+const GameScreen = () => {
   const [fontsLoaded] = useFonts({
     Fonte: require("@/src/assets/fonts/Digitalt.ttf"),
   });
@@ -131,7 +128,7 @@ const FaseUm = () => {
     if (allWordsCorrect) {
       setTimeout(() => {
         handleGameEnding();
-        router.push("/final");
+        router.push("/FinalScreen");
       }, 2000);
     }
   }, [blankSpaces]);
@@ -495,4 +492,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FaseUm;
+export default GameScreen;

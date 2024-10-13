@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-const Final = () => {
+const FinalScreen = () => {
     const faseDados = {
         identificacao: {
             id: '12345',
@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Final;
+export default FinalScreen;

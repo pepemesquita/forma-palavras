@@ -1,6 +1,6 @@
 import React from 'react';
 import {Stack} from 'expo-router';
-import {SoundProvider} from './SoundContext'; // Ajuste o caminho conforme necessário
+import {SoundProvider} from '../contexts/SoundContext';
 
 export default function RootLayout() {
     return (
@@ -11,11 +11,19 @@ export default function RootLayout() {
                     options={{headerShown: false}}
                 />
                 <Stack.Screen
-                    name="settings"
+                    name="HomeScreen"
                     options={{headerShown: false}}
                 />
                 <Stack.Screen
-                    name="fase1"
+                    name="SettingsScreen"
+                    options={{headerShown: false}}
+                />
+                <Stack.Screen
+                    name="GameScreen"
+                    options={{headerShown: false}}
+                />
+                <Stack.Screen
+                    name="FinalScreen"
                     options={{headerShown: false}}
                 />
             </Stack>
