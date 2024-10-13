@@ -23,11 +23,13 @@ import {
   letterArray,
   LetterType,
   BlankSpaceType,
+  getTargetLetter,
   verifyWord,
 } from "../utils/mockData";
 import ButtonContainer from "../components/ButtonContainer";
 import SettingsButton from "../components/SettingsButton";
 import { MaterialIcons } from "@expo/vector-icons";
+import {valid} from "@react-native-community/cli-platform-android/build/config/__fixtures__/android";
 
 const FaseUm = () => {
   const [fontsLoaded] = useFonts({
@@ -128,10 +130,20 @@ const FaseUm = () => {
     //navega para a próxima fase apenas se todas as palavras estiverem corretas
     if (allWordsCorrect) {
       setTimeout(() => {
+        handleGameEnding();
         router.push("/final");
       }, 2000);
     }
   }, [blankSpaces]);
+
+  const handleGameEnding = () => {
+    const sessionEndTime = new Date();
+    // const sessionDuration = (sessionEndTime - sessionStartTime) / 1000; // in seconds
+
+    setTimeout(() => {
+      console.log(letterActions);
+    }, 1000);
+  };
 
   const handleHomePress = () => {
     router.push("/");
@@ -150,9 +162,20 @@ const FaseUm = () => {
   );
   const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
 
+  const [sessionStatistics, setSessionStatistics] = useState([]);
+  const [letterActions, setLetterActions] = useState([]);
+  const [playCount, setPlayCount] = useState({lettersSelected: 0, lettersPlaced: 0});
+  let startTime = 0;
   const panResponders = letters.map((_, index) => {
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: (event, gesture) => {
+        startTime = Date.now();
+        setPlayCount((prevCounts) => ({
+          ...prevCounts,
+          lettersSelected: prevCounts.lettersSelected + 1,
+        }));
+      },
       onPanResponderMove: (event, gesture) => {
         pan[index].setValue({ x: gesture.dx, y: gesture.dy });
       },
@@ -160,9 +183,20 @@ const FaseUm = () => {
         const finalPosition = { x: gesture.moveX, y: gesture.moveY };
         const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
+        let validPlacement;
+        let targetPlacement;
         if (droppedSpaceIndex !== null) {
           const updatedBlankSpaces = [...blankSpaces];
           const updatedLetters = [...letters];
+
+          // valores xml
+          setPlayCount((prevCounts) => ({
+            ...prevCounts,
+            lettersPlaced: prevCounts.lettersPlaced + 1,
+          }));
+
+          validPlacement = true;
+          targetPlacement = droppedSpaceIndex;
 
           // Se o espaço já está ocupado, a letra anterior retorna ao conjunto de letras
           const currentLetterInSpace = updatedBlankSpaces[droppedSpaceIndex];
@@ -183,12 +217,32 @@ const FaseUm = () => {
           // Reseta a posição visual da letra
           pan[index].setValue({ x: 0, y: 0 });
         } else {
+          // valores xml
+          validPlacement = false;
+          targetPlacement = null;
+
           // Volta a letra para sua posição inicial se não for colocada em nenhum espaço
           Animated.spring(pan[index], {
             toValue: { x: 0, y: 0 },
             useNativeDriver: false,
           }).start();
         }
+
+        // xml test
+        console.log("MOVEMENT ENDED!!!");
+        const targetLetter = droppedSpaceIndex != null ? getTargetLetter(letters[index].char, droppedSpaceIndex) : null;
+        const endTime = Date.now();
+        const letterAction = {
+          placedLetter: letters[index].char,
+          correctLetter: targetLetter,
+          validPlacement: validPlacement,
+          correctPlacement: letters[index].char === targetLetter,
+          startTime: new Date(startTime).toLocaleString(),
+          endTime: new Date(endTime).toLocaleString(),
+          duration: (endTime - startTime) / 1000,
+        }
+        setLetterActions(prevState => [...prevState, letterAction]);
+        handleGameEnding();
       }
 
     });
