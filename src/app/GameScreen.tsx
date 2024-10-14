@@ -1,32 +1,36 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
-  StyleSheet,
-  View,
-  ImageBackground,
-  StatusBar,
-  Image,
-  Modal,
-  PanResponder,
   Animated,
   findNodeHandle,
+  Image,
+  ImageBackground,
+  Modal,
+  PanResponder,
+  StatusBar,
+  StyleSheet,
+  View,
 } from "react-native";
-import { useFonts } from "expo-font";
-import { useRouter } from "expo-router";
-import { Audio } from "expo-av";
+import {useFonts} from "expo-font";
+import {useRouter} from "expo-router";
+import {useFocusEffect} from '@react-navigation/native';
+import {Audio} from "expo-av";
 import SettingsScreen from "./SettingsScreen";
-import { useSound } from "../contexts/SoundContext";
+import {useSound} from "../contexts/SoundContext";
 import {
-  figures,
-  letterImages,
-  letterArray,
-  LetterType,
   BlankSpaceType,
+  figures,
   getTargetLetter,
+  letterArray,
+  letterImages,
+  LetterType,
   verifyWord,
 } from "../utils/mockData";
 import ButtonContainer from "../components/ButtonContainer";
 import SettingsButton from "../components/SettingsButton";
-import { MaterialIcons } from "@expo/vector-icons";
+import {MaterialIcons} from "@expo/vector-icons";
+import {Simulate} from "react-dom/test-utils";
+import play = Simulate.play;
+import {number} from "prop-types";
 
 const GameScreen = () => {
   const [fontsLoaded] = useFonts({
@@ -38,23 +42,37 @@ const GameScreen = () => {
   const router = useRouter();
   const soundRef = useRef<Audio.Sound | null>(null);
 
+  const [letters, setLetters] = useState<LetterType[]>(letterArray.map((char) => ({ char, position: null })));
   const blankSpaceRefs = useRef<(View | null)[]>([]);
-  const [blankSpacePositions, setBlankSpacePositions] = useState<
-    { fx: number; fy: number; width: number; height: number; x: number; y: number }[]
-  >([]);
+  const [blankSpacePositions, setBlankSpacePositions] = useState<{ fx: number; fy: number; width: number; height: number; x: number; y: number }[]>([]);
   const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
-  const [highlightedBlankSpaceIndex, setHighlightedBlankSpaceIndex] = useState<number | null>(null);
-  const [isWordComplete, setIsWordComplete] = useState<boolean>(false);
-  const [isWordCorrect, setIsWordCorrect] = useState<boolean>(false);
-  const [verificationMarks, setVerificationMarks] = useState<(string | null)[]>(
-    Array(4).fill(null)
-  );
+  const [verificationMarks, setVerificationMarks] = useState<(string | null)[]>(Array(4).fill(null));
+  const gameCompleted = useRef(false);
+  const gestureTime = useRef(0);
+  const numberOfGestures = useRef(0);
+  const localGestureStartTime = useRef(0);
+  const sessionStartTime = useRef(0);
+  const sessionEndTime = useRef(0);
+  const sessionTotalTime = useRef(0);
+  const [sessionStatistics, setSessionStatistics] = useState(null);
+  const [letterActions, setLetterActions] = useState([]);
+  const [playCount, setPlayCount] = useState({lettersSelected: 0, lettersPlacedCorrectly: 0, lettersPlacedIncorrectly: 0});
+
+  const playCountRef = useRef(playCount);
+  const letterActionsRef = useRef(letterActions);
+  const sessionStatisticsRef = useRef(sessionStatistics);
+
+  useEffect(() => {
+    playCountRef.current = playCount;
+    letterActionsRef.current = letterActions;
+    sessionStatisticsRef.current = sessionStatistics;
+  }, [playCount, letterActions]);
 
   useEffect(() => {
     const loadSound = async () => {
       const { sound } = await Audio.Sound.createAsync(
-        require("@/src/assets/sounds/background.mp3"),
-        { shouldPlay: !isMuted, isLooping: true }
+          require("@/src/assets/sounds/background.mp3"),
+          { shouldPlay: !isMuted, isLooping: true }
       );
       soundRef.current = sound;
     };
@@ -126,52 +144,66 @@ const GameScreen = () => {
 
     //navega para a próxima fase apenas se todas as palavras estiverem corretas
     if (allWordsCorrect) {
-      setTimeout(() => {
+        gameCompleted.current = true;
         handleGameEnding();
-        router.push("/FinalScreen");
-      }, 2000);
     }
   }, [blankSpaces]);
 
   const handleGameEnding = () => {
-    const sessionEndTime = new Date();
-    // const sessionDuration = (sessionEndTime - sessionStartTime) / 1000; // in seconds
+    sessionEndTime.current = Date.now();
+    sessionTotalTime.current = sessionEndTime.current - sessionStartTime.current;
 
-    setTimeout(() => {
-      console.log(letterActions);
-    }, 1000);
+    console.log("SESSION TOTAL TIME ", sessionTotalTime.current)
+    console.log("GESTURE TOTAL TIME ", gestureTime.current)
+    const avgLetterElapsedTime = gestureTime.current / numberOfGestures.current;
+    const idleElapsedTime = sessionTotalTime.current - gestureTime.current;
+    const sessionStats = {
+      horario_inicio: new Date(sessionStartTime.current).toISOString(),
+      horario_fim: new Date(sessionEndTime.current).toISOString(),
+      tempo_total: sessionTotalTime.current / 1000,
+      tempo_medio_por_letra: avgLetterElapsedTime / 1000,
+      tempo_em_ociosidade: idleElapsedTime / 1000,
+      letras_selecionadas_total: playCountRef.current.lettersSelected,
+      letras_posicionadas_corretamente: playCountRef.current.lettersPlacedCorrectly,
+      letras_posicionadas_incorretamente: playCountRef.current.lettersPlacedIncorrectly,
+      sessao_completada: gameCompleted.current
+    };
+    sessionStatisticsRef.current = sessionStats;
+
+    router.push({
+      pathname: "/FinalScreen",
+      params: {
+        sessionData: JSON.stringify(sessionStatisticsRef.current),
+        actionsData: JSON.stringify(letterActionsRef.current)
+      }
+    })
   };
 
-  const handleHomePress = () => {
-    router.push("/");
-  };
+  useFocusEffect(
+      useCallback(() => {
+        sessionStartTime.current = Date.now();
 
-  const handleSettingsPress = () => {
-    setIsSettingsVisible(true);
-  };
-
-  const handleCloseSettings = () => {
-    setIsSettingsVisible(false);
-  };
-
-  const [letters, setLetters] = useState<LetterType[]>(
-    letterArray.map((char) => ({ char, position: null }))
+        return () => {
+          handleGameEnding();
+        };
+      }, [])
   );
-  const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
 
-  const [sessionStatistics, setSessionStatistics] = useState([]);
-  const [letterActions, setLetterActions] = useState([]);
-  const [playCount, setPlayCount] = useState({lettersSelected: 0, lettersPlaced: 0});
-  let startTime = 0;
+  let gestureStartTime = 0;
+  const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
   const panResponders = letters.map((_, index) => {
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: (event, gesture) => {
-        startTime = Date.now();
+        localGestureStartTime.current = Date.now();
+        gestureStartTime = Date.now();
+        numberOfGestures.current += 1;
         setPlayCount((prevCounts) => ({
           ...prevCounts,
           lettersSelected: prevCounts.lettersSelected + 1,
         }));
+
+        console.log(playCount.lettersSelected)
       },
       onPanResponderMove: (event, gesture) => {
         pan[index].setValue({ x: gesture.dx, y: gesture.dy });
@@ -180,17 +212,16 @@ const GameScreen = () => {
         const finalPosition = { x: gesture.moveX, y: gesture.moveY };
         const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
+        const gestureEndTime = Date.now();
+        let gestureTotalDuration = gestureEndTime - gestureStartTime;
+        gestureTotalDuration =  gestureTotalDuration + gestureTime.current;
+        gestureTime.current = gestureTotalDuration;
+
         let validPlacement;
         let targetPlacement;
         if (droppedSpaceIndex !== null) {
           const updatedBlankSpaces = [...blankSpaces];
           const updatedLetters = [...letters];
-
-          // valores xml
-          setPlayCount((prevCounts) => ({
-            ...prevCounts,
-            lettersPlaced: prevCounts.lettersPlaced + 1,
-          }));
 
           validPlacement = true;
           targetPlacement = droppedSpaceIndex;
@@ -225,23 +256,31 @@ const GameScreen = () => {
           }).start();
         }
 
-        // xml test
-        console.log("MOVEMENT ENDED!!!");
         const targetLetter = droppedSpaceIndex != null ? getTargetLetter(letters[index].char, droppedSpaceIndex) : null;
         const endTime = Date.now();
         const letterAction = {
-          placedLetter: letters[index].char,
-          correctLetter: targetLetter,
-          validPlacement: validPlacement,
-          correctPlacement: letters[index].char === targetLetter,
-          startTime: new Date(startTime).toLocaleString(),
-          endTime: new Date(endTime).toLocaleString(),
-          duration: (endTime - startTime) / 1000,
+          horario_inicio: new Date(localGestureStartTime.current).toISOString(),
+          horario_fim: new Date(endTime).toISOString(),
+          tempo_total: (endTime - localGestureStartTime.current) / 1000,
+          letra_selecionada: letters[index].char,
+          letra_esperada: targetLetter,
+          jogada_correta: letters[index].char === targetLetter,
+          jogada_valida: validPlacement,
         }
         setLetterActions(prevState => [...prevState, letterAction]);
-        handleGameEnding();
-      }
 
+        if (letters[index].char === targetLetter) {
+          setPlayCount((prevCounts) => ({
+            ...prevCounts,
+            lettersPlacedCorrectly: prevCounts.lettersPlacedCorrectly + 1,
+          }));
+        } else {
+          setPlayCount((prevCounts) => ({
+            ...prevCounts,
+            lettersPlacedIncorrectly: prevCounts.lettersPlacedIncorrectly + 1,
+          }));
+        }
+      }
     });
   });
 
@@ -267,6 +306,18 @@ const GameScreen = () => {
     });
 
     return shortestDistance < 50 ? nearestSpaceIndex : null;
+  };
+
+  const handleHomePress = () => {
+    router.push("/");
+  };
+
+  const handleSettingsPress = () => {
+    setIsSettingsVisible(true);
+  };
+
+  const handleCloseSettings = () => {
+    setIsSettingsVisible(false);
   };
 
   const renderFigures = () => {

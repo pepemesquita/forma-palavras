@@ -1,95 +1,86 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as XLSX from 'xlsx';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const FinalScreen = () => {
-    const faseDados = {
-        identificacao: {
-            id: '12345',
-            dispositivo: 'Dispositivo Android XYZ',
-        },
-        sessao: {
-            dataHora: new Date().toISOString(),
-            duracao: '15 minutos',
-        },
-        progresso: {
-            faseJogada: 'Fase 1',
-            tempoNaFase: '5 minutos',
-            ordemLetrasColocadas: ['A', 'B', 'C', 'D'],
-            palavrasFormadasCorretamente: ['ABCD'],
-            palavrasFormadasIncorretamente: ['ABDC'],
-        },
-        erros: {
-            errosPorFase: 2,
-            tempoParaCorrigir: '2 minutos',
-        },
-    };
+    const router = useRouter();
+    const { sessionData, actionsData } = useLocalSearchParams();
+    const parsedSessionData = JSON.parse(sessionData);
+    const parsedActionsData = JSON.parse(actionsData);
 
-    const gerarXML = () => {
-        const xmlData = `
-    <dados>
-      <identificacao>
-        <id>${faseDados.identificacao.id}</id>
-        <dispositivo>${faseDados.identificacao.dispositivo}</dispositivo>
-      </identificacao>
-      <sessao>
-        <dataHora>${faseDados.sessao.dataHora}</dataHora>
-        <duracao>${faseDados.sessao.duracao}</duracao>
-      </sessao>
-      <progresso>
-        <faseJogada>${faseDados.progresso.faseJogada}</faseJogada>
-        <tempoNaFase>${faseDados.progresso.tempoNaFase}</tempoNaFase>
-        <ordemLetrasColocadas>${faseDados.progresso.ordemLetrasColocadas.join(', ')}</ordemLetrasColocadas>
-        <palavrasFormadasCorretamente>${faseDados.progresso.palavrasFormadasCorretamente.join(', ')}</palavrasFormadasCorretamente>
-        <palavrasFormadasIncorretamente>${faseDados.progresso.palavrasFormadasIncorretamente.join(', ')}</palavrasFormadasIncorretamente>
-      </progresso>
-      <erros>
-        <errosPorFase>${faseDados.erros.errosPorFase}</errosPorFase>
-        <tempoParaCorrigir>${faseDados.erros.tempoParaCorrigir}</tempoParaCorrigir>
-      </erros>
-    </dados>
-    `;
-        return xmlData;
-    };
+    router.push("/");
+    useEffect(() => {
+        console.log("OUTSIDE FUNCTION!!!!!")
+        console.log(parsedSessionData);
+        console.log(parsedActionsData);
 
-    const baixarArquivoXML = async () => {
-        const xmlContent = gerarXML();
-        const fileName = 'dados_jogo.xml';
-        const filePath = `${FileSystem.documentDirectory}${fileName}`;
+        if (parsedSessionData && parsedActionsData) {
+            generateXLSXFile(parsedSessionData, parsedActionsData);
+            router.push("/");
+        }
+    }, [parsedSessionData, parsedActionsData]);
+
+    const generateXLSXFile = async (sessionData, actionsData) => {
+        console.log("INSIDE FUNCTION!!!!!")
+        console.log(sessionData);
+        console.log(actionsData);
+
+        const generalSheet = XLSX.utils.json_to_sheet([sessionData]);
+
+        const actionsSheet = XLSX.utils.json_to_sheet(actionsData);
+
+        const wbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wbook, generalSheet, "general");
+        XLSX.utils.book_append_sheet(wbook, actionsSheet, "actions");
+
+        const wbout = XLSX.write(wbook, { type: 'base64', bookType: 'xlsx' });
+        const fileName = `${FileSystem.documentDirectory}game_session.xlsx`;
 
         try {
             if (Platform.OS === 'web') {
-                //pra web, cria um link de download manualmente
-                const blob = new Blob([xmlContent], { type: 'application/xml' });
+                const blob = new Blob([s2ab(atob(wbout))], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', fileName);
+                link.setAttribute('download', 'game_session.xlsx');
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
-                Alert.alert('Sucesso', 'Arquivo XML baixado com sucesso.');
+                Alert.alert('Sucesso', 'Arquivo XLSX baixado com sucesso.');
             } else {
-                //pra plataformas nativas, usa expo-file-system e expo-sharing
-                await FileSystem.writeAsStringAsync(filePath, xmlContent);
+                await FileSystem.writeAsStringAsync(fileName, wbout, {
+                    encoding: FileSystem.EncodingType.Base64
+                });
                 const isSharingAvailable = await Sharing.isAvailableAsync();
                 if (isSharingAvailable) {
-                    await Sharing.shareAsync(filePath, {
-                        mimeType: 'application/xml',
-                        dialogTitle: 'Baixar XML',
+                    await Sharing.shareAsync(fileName, {
+                        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        dialogTitle: 'Baixar Arquivo XLSX',
+                        UTI: 'com.microsoft.excel.xlsx'
                     });
                 } else {
                     Alert.alert('Compartilhamento não disponível', 'Não é possível compartilhar o arquivo neste dispositivo.');
                 }
             }
         } catch (error) {
-            console.error('Erro ao gerar o arquivo XML:', error);
-            Alert.alert('Erro', 'Ocorreu um erro ao gerar o arquivo XML.');
+            console.error('Erro ao gerar o arquivo XLSX:', error);
+            Alert.alert('Erro', 'Ocorreu um erro ao gerar o arquivo XLSX.');
         }
     };
 
-    return (
+    const s2ab = (s) => {
+        const buf = new ArrayBuffer(s.length); // convert to ArrayBuffer
+        const view = new Uint8Array(buf); // create a view for the buffer
+        for (let i = 0; i !== s.length; ++i) {
+            view[i] = s.charCodeAt(i) & 0xFF; // convert the string into binary data
+        }
+        return buf;
+    };
+
+    /*return (
         <View style={styles.container}>
             <Text style={styles.title}>Fase Finalizada!</Text>
             <Text style={styles.description}>
@@ -99,7 +90,7 @@ const FinalScreen = () => {
                 <Text style={styles.buttonText}>Baixar Arquivo XML</Text>
             </TouchableOpacity>
         </View>
-    );
+    );*/
 };
 
 const styles = StyleSheet.create({
