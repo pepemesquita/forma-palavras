@@ -153,8 +153,6 @@ const GameScreen = () => {
     sessionEndTime.current = Date.now();
     sessionTotalTime.current = sessionEndTime.current - sessionStartTime.current;
 
-    console.log("SESSION TOTAL TIME ", sessionTotalTime.current)
-    console.log("GESTURE TOTAL TIME ", gestureTime.current)
     const avgLetterElapsedTime = gestureTime.current / numberOfGestures.current;
     const idleElapsedTime = sessionTotalTime.current - gestureTime.current;
     const sessionStats = {
@@ -184,7 +182,7 @@ const GameScreen = () => {
         sessionStartTime.current = Date.now();
 
         return () => {
-          handleGameEnding();
+          if (gameCompleted.current != true) handleGameEnding();
         };
       }, [])
   );
@@ -202,8 +200,6 @@ const GameScreen = () => {
           ...prevCounts,
           lettersSelected: prevCounts.lettersSelected + 1,
         }));
-
-        console.log(playCount.lettersSelected)
       },
       onPanResponderMove: (event, gesture) => {
         pan[index].setValue({ x: gesture.dx, y: gesture.dy });

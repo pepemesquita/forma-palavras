@@ -13,10 +13,6 @@ const FinalScreen = () => {
 
     router.push("/");
     useEffect(() => {
-        console.log("OUTSIDE FUNCTION!!!!!")
-        console.log(parsedSessionData);
-        console.log(parsedActionsData);
-
         if (parsedSessionData && parsedActionsData) {
             generateXLSXFile(parsedSessionData, parsedActionsData);
             router.push("/");
@@ -24,11 +20,7 @@ const FinalScreen = () => {
     }, [parsedSessionData, parsedActionsData]);
 
     const generateXLSXFile = async (sessionData, actionsData) => {
-        console.log("INSIDE FUNCTION!!!!!")
-        console.log(sessionData);
-        console.log(actionsData);
-
-        const generalSheet = XLSX.utils.json_to_sheet([sessionData]);
+       const generalSheet = XLSX.utils.json_to_sheet([sessionData]);
 
         const actionsSheet = XLSX.utils.json_to_sheet(actionsData);
 
@@ -79,18 +71,6 @@ const FinalScreen = () => {
         }
         return buf;
     };
-
-    /*return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Fase Finalizada!</Text>
-            <Text style={styles.description}>
-                Parabéns por completar a fase. Agora você pode baixar os dados do seu progresso em um arquivo XML.
-            </Text>
-            <TouchableOpacity style={styles.button} onPress={baixarArquivoXML}>
-                <Text style={styles.buttonText}>Baixar Arquivo XML</Text>
-            </TouchableOpacity>
-        </View>
-    );*/
 };
 
 const styles = StyleSheet.create({
