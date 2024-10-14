@@ -142,10 +142,11 @@ const GameScreen = () => {
       }
     });
 
-    //navega para a próxima fase apenas se todas as palavras estiverem corretas
-    if (allWordsCorrect) {
-        gameCompleted.current = true;
-        handleGameEnding();
+    const allBlankSpacesFilled = blankSpaces.every((space) => space !== null);
+
+    if (allBlankSpacesFilled) {
+      gameCompleted.current = true;
+      handleGameEnding();
     }
   }, [blankSpaces]);
 
@@ -439,16 +440,15 @@ const styles = StyleSheet.create({
   },
   botaoSettings: {
     position: "absolute",
-    top: 10,
-    right: "4%",
+    top: 24,
+    right: 14,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 50,
-    padding: 10, // Adicionando padding para garantir que o ícone tenha espaço suficiente
+    padding: 10,
   },
-  botaoSettingsImage: {
-    // Verifique se esta propriedade está presente e corretamente definida
-    width: 30, // Ajuste do tamanho do ícone do botão de configurações
-    height: 30,
+  botaoSettingsIcon: {
+    width: 25,
+    height: 25,
     resizeMode: "contain",
   },
   gameContainer: {

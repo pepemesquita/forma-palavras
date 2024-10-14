@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     },
     botaoSettings: {
         position: "absolute",
-        top: 30,
-        right: 20,
+        top: 24,
+        right: 14,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
         borderRadius: 50,
         padding: 10,

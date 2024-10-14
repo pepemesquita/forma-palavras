@@ -5,14 +5,13 @@ const ButtonContainer = ({onHomePress}: { onHomePress: () => void }) => {
     return (
         <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.iconButton} onPress={onHomePress}>
-                <Image source={require('@/src/assets/images/iconex.png')} style={styles.iconImage}/>
+                <Image source={require('@/src/assets/images/iconex.png')} style={styles.closeIconImage}/>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={onHomePress}>
-                <Image source={require('@/src/assets/images/home.png')} style={styles.iconImage}/>
+                <Image source={require('@/src/assets/images/home.png')} style={styles.homeIconImage}/>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => {
-            }}>
-                <Image source={require('@/src/assets/images/restart.png')} style={styles.iconImage}/>
+            <TouchableOpacity style={styles.iconButton} onPress={() => {}}>
+                <Image source={require('@/src/assets/images/restart.png')} style={styles.restartIconImage}/>
             </TouchableOpacity>
         </View>
     );
@@ -23,22 +22,34 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 120,
         height: 50,
-        left: 26,
-        top: 16,
+        left: 29,
+        top: 19,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
     },
     iconButton: {
-        width: 50,
-        height: 50,
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    iconImage: {
-        width: 40,
-        height: 40,
+    closeIconImage: {
+        width: 41,
+        height: 41,
         resizeMode: 'contain',
+        marginRight: 10,
+    },
+    homeIconImage: {
+        width: 39,
+        height: 39,
+        resizeMode: 'contain',
+        marginRight: 8,
+    },
+    restartIconImage: {
+        width: 34,
+        height: 34,
+        resizeMode: 'contain',
+        marginRight: 10,
     },
 });
 

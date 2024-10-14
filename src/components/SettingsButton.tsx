@@ -13,17 +13,17 @@ const SettingsButton = ({onPress}: { onPress: () => void }) => (
 
 const styles = StyleSheet.create({
     botaoSettings: {
-        position: 'absolute',
-        top: 10,
-        right: '4%',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        position: "absolute",
+        top: 24,
+        right: 14,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
         borderRadius: 50,
         padding: 10,
     },
     botaoSettingsImage: {
-        width: 30,
-        height: 30,
-        resizeMode: 'contain',
+        width: 25,
+        height: 25,
+        resizeMode: "contain",
     },
 });
 
