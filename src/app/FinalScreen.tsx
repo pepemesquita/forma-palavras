@@ -11,17 +11,19 @@ const FinalScreen = () => {
     const parsedSessionData = JSON.parse(sessionData);
     const parsedActionsData = JSON.parse(actionsData);
 
-    router.push("/");
     useEffect(() => {
-        if (parsedSessionData && parsedActionsData) {
-            generateXLSXFile(parsedSessionData, parsedActionsData);
-            router.push("/");
-        }
+        const generateAndShareFile = async () => {
+            if (parsedSessionData && parsedActionsData) {
+                await generateXLSXFile(parsedSessionData, parsedActionsData);
+                router.push("/");  // Redireciona apenas depois da geração do arquivo
+            }
+        };
+
+        generateAndShareFile();  // Chama a função dentro do useEffect
     }, [parsedSessionData, parsedActionsData]);
 
     const generateXLSXFile = async (sessionData, actionsData) => {
-       const generalSheet = XLSX.utils.json_to_sheet([sessionData]);
-
+        const generalSheet = XLSX.utils.json_to_sheet([sessionData]);
         const actionsSheet = XLSX.utils.json_to_sheet(actionsData);
 
         const wbook = XLSX.utils.book_new();
@@ -71,6 +73,12 @@ const FinalScreen = () => {
         }
         return buf;
     };
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Final Screen</Text>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -86,22 +94,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
-    },
-    description: {
-        fontSize: 16,
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    button: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
 });
 
