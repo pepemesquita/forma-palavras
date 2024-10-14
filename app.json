@@ -4,11 +4,11 @@
     "slug": "forma-palavras",
     "version": "1.0.0",
     "orientation": "landscape",
-    "icon": "./assets/images/logo.png",
+    "icon": "./src/assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/logo.png",
+      "image": "./src/assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,14 +17,15 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./src/assets/images/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.munchow.formapalavras"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./src/assets/images/logo.png"
     },
     "plugins": [
       "expo-router",
@@ -32,6 +33,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5370df48-ebe9-495e-9832-0e51897b671d"
+      }
     }
   }
 }
