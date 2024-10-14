@@ -48,7 +48,8 @@ const GameScreen = () => {
   const [blankSpaces, setBlankSpaces] = useState<(BlankSpaceType | null)[]>(Array(16).fill(null));
   const [verificationMarks, setVerificationMarks] = useState<(string | null)[]>(Array(4).fill(null));
   const gameCompleted = useRef(false);
-  const gestureTime = useRef(0);
+  const currentGestureTime = useRef(0);
+  const finalGestureTime = useRef(0);
   const numberOfGestures = useRef(0);
   const localGestureStartTime = useRef(0);
   const sessionStartTime = useRef(0);
@@ -154,8 +155,8 @@ const GameScreen = () => {
     sessionEndTime.current = Date.now();
     sessionTotalTime.current = sessionEndTime.current - sessionStartTime.current;
 
-    const avgLetterElapsedTime = gestureTime.current / numberOfGestures.current;
-    const idleElapsedTime = sessionTotalTime.current - gestureTime.current;
+    const avgLetterElapsedTime = finalGestureTime.current / numberOfGestures.current;
+    const idleElapsedTime = sessionTotalTime.current - finalGestureTime.current;
     const sessionStats = {
       horario_inicio: new Date(sessionStartTime.current).toISOString(),
       horario_fim: new Date(sessionEndTime.current).toISOString(),
@@ -188,14 +189,13 @@ const GameScreen = () => {
       }, [])
   );
 
-  let gestureStartTime = 0;
   const pan = useRef(letters.map(() => new Animated.ValueXY())).current;
   const panResponders = letters.map((_, index) => {
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: (event, gesture) => {
         localGestureStartTime.current = Date.now();
-        gestureStartTime = Date.now();
+        currentGestureTime.current = Date.now();
         numberOfGestures.current += 1;
         setPlayCount((prevCounts) => ({
           ...prevCounts,
@@ -209,10 +209,13 @@ const GameScreen = () => {
         const finalPosition = { x: gesture.moveX, y: gesture.moveY };
         const droppedSpaceIndex = findNearestBlankSpace(finalPosition);
 
-        const gestureEndTime = Date.now();
-        let gestureTotalDuration = gestureEndTime - gestureStartTime;
-        gestureTotalDuration =  gestureTotalDuration + gestureTime.current;
-        gestureTime.current = gestureTotalDuration;
+        console.log("CURRENT")
+        console.log(finalGestureTime.current / 1000)
+
+        finalGestureTime.current += Date.now() - currentGestureTime.current;
+
+        console.log("AFTER SUM")
+        console.log(finalGestureTime.current / 1000)
 
         let validPlacement;
         let targetPlacement;
